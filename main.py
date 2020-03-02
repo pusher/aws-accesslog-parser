@@ -40,8 +40,8 @@ def parseAccessLog(line):
     target_processing_time = spaceSplit[6]    # in sec with ms precision
     response_processing_time = spaceSplit[7]  # in sec with ms precision
     elb_status_code = spaceSplit[8]
-    target_status_code = int(spaceSplit[9])
-    received_bytes = int(spaceSplit[10])
+    target_status_code = spaceSplit[9]
+    received_bytes = spaceSplit[10]
     sent_bytes = int(spaceSplit[11])
     requestRaw = line.split('"')[1]
     method = requestRaw.split(" ")[0]
@@ -112,11 +112,9 @@ def flushToElastic(elastic, inputList):
     try:
         # make the bulk call, and get a response
         response = helpers.bulk(elastic, inputList)
-
-        # response = helpers.bulk(elastic, actions, index='employees', doc_type='people')
-        print("\nRESPONSE:", response)
+        print("RESPONSE:", response)
     except Exception as e:
-        print("\nERROR:", e)
+        print("ERROR:", e)
 
 
 def prepForBulk(prefixName, body):
@@ -134,9 +132,9 @@ def prepForBulk(prefixName, body):
             timeMonth,
             timeDay,
         )
+    # hashMe = "{}-{}".format(iso_time, body)
 
-    id = es.predicablehash(iso_time, body)  # TODO: make this useful and hash specific data
-
+    id = es.predicablehash(iso_time, body['trace_id'])  # TODO: make this useful and hash specific data
     result = {
         '_index': indexName,
         '_type': 'document',
@@ -146,11 +144,11 @@ def prepForBulk(prefixName, body):
     }
     return result
 
+
 if __name__ == "__main__":
     opts = getOpts(sys.argv[1:])
     esConn = es.newElasticConnect()
     file = opts.file
-
 
     # these four are crucial to the loop
     buf = []
@@ -158,16 +156,18 @@ if __name__ == "__main__":
     lineNumber = 0
     lineCountTotal = countLinesInGzippedFile(file)
     #################################################
-
+    written = 0
     with gzip.open(file, "rt") as fh:
         for line in fh:
             lineNumber += 1
             x = parseAccessLog(line)
-            y = prepForBulk("foo", x)
-            buf.append(y)
-            # flush every X lines and on the final line
-            if lineNumber % flushFreq == 0 or lineNumber == lineCountTotal:
-                flushToElastic(esConn, buf)
-                buf = []
+            if x['elb_status_code'] != "200":
+                written += 1
+                y = prepForBulk("foo", x)
+                buf.append(y)
+                # flush every X lines and on the final line
+                if lineNumber % flushFreq == 0 or lineNumber == lineCountTotal:
+                    flushToElastic(esConn, buf)
+                    buf = []
 
-    print("done.. wrote:", lineCountTotal)
+    print("done.. total documents written: ", written)
