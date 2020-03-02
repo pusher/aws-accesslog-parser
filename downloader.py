@@ -10,9 +10,9 @@ def getOpts(args=sys.argv[1:]):
     parser = argparse.ArgumentParser(
         description="Downloads/Syncs LB access logs for a specific hour (from S3 -> local disk)")
     parser.add_argument("-t", "--time",
-        dest="time", help="hour you want to download in for format: 'YYYYMMDD-HH'")
+        dest="time", help="hour you want to download in for format: 'YYYYMMDD-HH'", required=True)
     parser.add_argument("-l", "--loadbalancer",
-        dest="lb", help="loadbalancer name")
+        dest="lb", help="loadbalancer name", required=True)
     parser.add_argument("-n", "--dry-run",
         dest='dryrun',action='store_true', help="Dry Run")
     parser.add_argument("-b", "--bucket",

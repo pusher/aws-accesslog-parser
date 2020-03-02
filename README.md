@@ -59,6 +59,7 @@ source localvenv/bin/activate
 3. install the deps
 
 ```
+pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
@@ -67,7 +68,7 @@ pip install -r requirements.txt
 5. don't forget to freeze deps
 
 ```
-pip freeze --path ./localvenv/lib/python3.8/site-packages
+pip freeze --path ./localvenv/lib/python3.8/site-packages > requirements.txt
 ```
 
 
