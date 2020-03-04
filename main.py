@@ -7,6 +7,7 @@ import sys
 import argparse
 from elasticsearch import helpers
 import es
+import parse
 
 def getOpts(args=sys.argv[1:]):
     parser = argparse.ArgumentParser(
@@ -125,7 +126,7 @@ def prepForBulk(prefixName, body):
     timeMonth = body['timestamp'].strftime('%m')
     timeDay = body['timestamp'].strftime('%d')
     del body['timestamp']
-    del body['ts']
+    # del body['ts']
     indexName = "{}-{}.{}.{}".format(
             prefixName,
             timeYear,
@@ -152,22 +153,40 @@ if __name__ == "__main__":
 
     # these four are crucial to the loop
     buf = []
-    flushFreq = 5000
+    flushFreq = 1000
     lineNumber = 0
     lineCountTotal = countLinesInGzippedFile(file)
     #################################################
-    written = 0
+    to_write = 0
     with gzip.open(file, "rt") as fh:
         for line in fh:
             lineNumber += 1
-            x = parseAccessLog(line)
-            if x['elb_status_code'] != "200":
-                written += 1
+            # x = parseAccessLog(line)
+            x = parse.parseLine(line)
+            excludeList = [
+                    "200",
+                    "202",
+                    "400",
+                    "401",
+                    "403",
+                    "404",
+                    "413",
+                    "460", # This error occurs when the load balancer received a request from a client, but the client closed the connection with the load balancer before the idle timeout period elapses.
+                    ]
+            # if "5" in x['lb_status_code']:
+            if x['lb_status_code'] not in str(excludeList):
+
+                to_write += 1
                 y = prepForBulk("foo", x)
                 buf.append(y)
                 # flush every X lines and on the final line
-                if lineNumber % flushFreq == 0 or lineNumber == lineCountTotal:
-                    flushToElastic(esConn, buf)
-                    buf = []
 
-    print("done.. total documents written: ", written)
+            if len(buf) % flushFreq == 0 or lineNumber == lineCountTotal:
+            # if lineNumber % flushFreq == 0 or lineNumber == lineCountTotal:
+                if len(buf) > 0:
+                    # print(len(buf))
+                    print(lineNumber)
+                    flushToElastic(esConn, buf)
+                buf = []
+
+    print("done.. total documents written: ", to_write)
