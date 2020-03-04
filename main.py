@@ -170,15 +170,23 @@ if __name__ == "__main__":
     buf = []
     flushFreq = 1000
     lineNumber = 0
-    lineCountTotal = countLinesInGzippedFile(file)
+    # lineCountTotal = countLinesInGzippedFile(file)
     #################################################
     to_write = 0
 
-
-    pbar = tqdm(total=lineCountTotal)
+    wrote = 0
 
 
     with gzip.open(file, "rt") as fh:
+        lineCountTotal = 0
+        for x in fh:
+            lineCountTotal += 1
+        fh.seek(0)
+
+
+        pbar = tqdm(total=lineCountTotal)
+
+
         for line in fh:
             lineNumber += 1
             pbar.update(1)
@@ -196,10 +204,12 @@ if __name__ == "__main__":
             if len(buf) % flushFreq == 0 or lineNumber == lineCountTotal:
             # if lineNumber % flushFreq == 0 or lineNumber == lineCountTotal:
                 if len(buf) > 0:
-                    # print(len(buf))
-                    # print(lineNumber)
                     flushToElastic(esConn, buf)
+                    wrote += len(buf)
                 buf = []
 
-    # print("done searching.. total matches: ", to_write)
-    pbar.close()
+        pbar.close()
+    print("summary: total_lines={}, wrote_to_elastic={}".format(
+        lineCountTotal,
+        wrote))
+    print("")
