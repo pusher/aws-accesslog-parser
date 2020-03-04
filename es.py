@@ -32,7 +32,7 @@ def newElasticConnect():
             # and also every 60 seconds
             sniffer_timeout=60
         )
-        print("connected to elastic {}".format(elasticHost))
+        # print("connected to elastic {}".format(elasticHost))
         return conn
 
 
