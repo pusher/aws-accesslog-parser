@@ -8,6 +8,7 @@ import argparse
 from elasticsearch import helpers
 import es
 import parse
+from tqdm import tqdm
 
 def getOpts(args=sys.argv[1:]):
     parser = argparse.ArgumentParser(
@@ -104,16 +105,16 @@ def countLinesInGzippedFile(gzipedFileName):
         count = 0
         for x in fh:
             count += 1
-    print(gzipedFileName, "has", count, "lines")
+    # print(gzipedFileName, "has", count, "lines")
     return count
 
 
 def flushToElastic(elastic, inputList):
-    print("flushing", len(inputList), "objects")
+    # print("flushing", len(inputList), "objects")
     try:
         # make the bulk call, and get a response
         response = helpers.bulk(elastic, inputList)
-        print("RESPONSE:", response)
+        # print("RESPONSE:", response)
     except Exception as e:
         print("ERROR:", e)
 
@@ -147,10 +148,13 @@ def prepForBulk(prefixName, body):
 
 
 if __name__ == "__main__":
+
     opts = getOpts(sys.argv[1:])
     esConn = es.newElasticConnect()
     file = opts.file
+    print("processing: {}".format(file))
 
+    # TODO exclude list can possibly be a comma seperated arg
     excludeList = [
         "200",
         "202",
@@ -169,9 +173,15 @@ if __name__ == "__main__":
     lineCountTotal = countLinesInGzippedFile(file)
     #################################################
     to_write = 0
+
+
+    pbar = tqdm(total=lineCountTotal)
+
+
     with gzip.open(file, "rt") as fh:
         for line in fh:
             lineNumber += 1
+            pbar.update(1)
 
             ## before doing a full parse.. quickly check for the status code so we can only do a full parse on lines we care about
             quickCheckElbStatus  = line.split(" ")[8]
@@ -187,8 +197,9 @@ if __name__ == "__main__":
             # if lineNumber % flushFreq == 0 or lineNumber == lineCountTotal:
                 if len(buf) > 0:
                     # print(len(buf))
-                    print(lineNumber)
+                    # print(lineNumber)
                     flushToElastic(esConn, buf)
                 buf = []
 
-    print("done searching.. total matches: ", to_write)
+    # print("done searching.. total matches: ", to_write)
+    pbar.close()
