@@ -1,13 +1,34 @@
 
 
 
+# Quickstart
+
 1. sync the logs u want locally
 
-This little utility will download a specific hour.. `-t` format is `YYYYMMDD-HH`
+First download the logs you want.. EG:
+
+```shell
+export YEAR=2020
+export MONTH=03
+export DAY=06
+export HOUR=16
+mkdir -p ./logs/${YEAR}/${MONTH}/${DAY}/
+aws s3 sync \
+  s3://alb-logs-mt1/api-alb/AWSLogs/008815156580/elasticloadbalancing/us-east-1/${YEAR}/${MONTH}/${DAY}/ \
+  ./logs/${YEAR}/${MONTH}/${DAY}/ \
+  --exclude="*" \
+  --include "*gateway*${YEAR}${MONTH}${DAY}T${HOUR}*"
+```
+
+2. `docker-compose up`
+
+3. parse logs into elastic
 
 ```
-./downloader.py -l mt1-api-gateway -t "20190229-06"
+find ./logs/${YEAR}/${MONTH}/${DAY} -type f -name "*.gz" -exec ./main.py -f {} \;
 ```
+
+
 
 
 
