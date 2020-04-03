@@ -51,7 +51,7 @@ def parseAccessLog(line):
     # uaRaw = line.split('"')[3+extraSpaces]
     ssl_cipher = spaceSplit[16+extraSpaces]
     ssl_protocol = spaceSplit[17+extraSpaces]
-    target_group_arn = spaceSplit[18+extraSpaces] # TODO: split maybe arn:aws:elasticloadbalancing:us-east-1:008815156580:targetgroup/api-gateway-mt1/203ecbef7fb8612b
+    target_group_arn = spaceSplit[18+extraSpaces] # TODO: split this for some extra metadata?
     trace_id = spaceSplit[19+extraSpaces]
     domain_name = spaceSplit[20+extraSpaces]
     chosen_cert_arn = spaceSplit[21+extraSpaces]

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import ciso8601
-
 import re
 
 
@@ -36,8 +35,7 @@ def parseLine(line):
         "redirect_url",
         "last_field",
     ]
-    # Note: for Python 2.7 compatibility, use ur"" to prefix the regex and u"" to prefix the test string and substitution.
-    # REFERENCE: https://docs.aws.amazon.com/athena/latest/ug/application-load-balancer-logs.html#create-alb-table
+    # credit: https://gist.github.com/jweyrich/8d53a7bf5bad7b5958423cb4e538ab20
     regex = r"([^ ]*) ([^ ]*) ([^ ]*) ([^ ]*):([0-9]*) ([^ ]*)[:-]([0-9]*) ([-.0-9]*) ([-.0-9]*) ([-.0-9]*) (|[-0-9]*) (-|[-0-9]*) ([-0-9]*) ([-0-9]*) \"([^ ]*) ([^ ]*) (- |[^ ]*)\" \"([^\"]*)\" ([A-Z0-9-]+) ([A-Za-z0-9.-]*) ([^ ]*) \"([^\"]*)\" \"([^\"]*)\" \"([^\"]*)\" ([-.0-9]*) ([^ ]*) \"([^\"]*)\" ($|\"[^ ]*\")(.*)"
 
     matches = re.search(regex, line)
@@ -62,17 +60,4 @@ def parseLine(line):
 
             res[field] = value
 
-
     return res
-
-if __name__ == "__main__":
-
-    with open("foo.txt", 'r') as file:
-        for line in file:
-            result = parseLine(line)
-            print(result)
-
-            # # print(result)
-            # for (key, value) in result.items() :
-            #     print(key , " :: ", value )
-            # #     print(key , " :: ", value )

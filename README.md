@@ -12,12 +12,16 @@ export YEAR=2020
 export MONTH=03
 export DAY=06
 export HOUR=16
+export S3BUCKET=my-alb-log-bucket
+export AWS_ACCOUNT_ID=123321321321
+export REGION=us-east-1
+export ALB_NAME=ingress
 mkdir -p ./logs/${YEAR}/${MONTH}/${DAY}/
 aws s3 sync \
-  s3://alb-logs-mt1/api-alb/AWSLogs/008815156580/elasticloadbalancing/us-east-1/${YEAR}/${MONTH}/${DAY}/ \
+  s3://${S3BUCKET}/api-alb/AWSLogs/${AWS_ACCOUNT_ID}/elasticloadbalancing/${REGION}/${YEAR}/${MONTH}/${DAY}/ \
   ./logs/${YEAR}/${MONTH}/${DAY}/ \
   --exclude="*" \
-  --include "*gateway*${YEAR}${MONTH}${DAY}T${HOUR}*"
+  --include "*${ALB_NAME}*${YEAR}${MONTH}${DAY}T${HOUR}*"
 ```
 
 2. `docker-compose up`
@@ -92,4 +96,8 @@ pip install -r requirements.txt
 pip freeze --path ./localvenv/lib/python3.8/site-packages > requirements.txt
 ```
 
+
+# Credits
+
+The fastest way I've found to parse the lines is with the regex by @jweyrich [here](https://gist.github.com/jweyrich/8d53a7bf5bad7b5958423cb4e538ab20)
 
