@@ -10,16 +10,16 @@ def getOpts(args=sys.argv[1:]):
     parser = argparse.ArgumentParser(
         description="Downloads/Syncs LB access logs for a specific hour (from S3 -> local disk)")
     parser.add_argument("-t", "--time",
-        dest="time", help="hour you want to download in for format: 'YYYYMMDD-HH'")
+        dest="time", help="hour you want to download in for format: 'YYYYMMDD-HH'", required=True)
     parser.add_argument("-l", "--loadbalancer",
-        dest="lb", help="loadbalancer name")
+        dest="lb", help="loadbalancer name", required=True)
     parser.add_argument("-n", "--dry-run",
         dest='dryrun',action='store_true', help="Dry Run")
     parser.add_argument("-b", "--bucket",
-        help="s3 bucket + search path", default="alb-logs-mt1")
+        help="s3 bucket + search path", default="alb-logs-foo")
     parser.add_argument("-p", "--prefix",
-        help="prefix (subdir in s3). eg: api-alb/AWSLogs/008815156580/elasticloadbalancing",
-        default="api-alb/AWSLogs/008815156580/elasticloadbalancing")
+        help="prefix (subdir in s3). eg: api-alb/AWSLogs/123123123123/elasticloadbalancing",
+        default="api-foo/AWSLogs/123123123123/elasticloadbalancing")
     parser.add_argument("-r", "--region",
         dest="region", help="AWS region", default="us-east-1")
     res = parser.parse_args(args)

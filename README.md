@@ -1,13 +1,39 @@
 
 
 
+# Quickstart
+
 1. sync the logs u want locally
 
-This little utility will download a specific hour.. `-t` format is `YYYYMMDD-HH`
+First download the logs you want.. EG:
+
+```shell
+export YEAR=2020
+export MONTH=03
+export DAY=06
+export HOUR=16
+export S3BUCKET=my-alb-log-bucket
+export AWS_ACCOUNT_ID=123321321321
+export REGION=us-east-1
+export ALB_NAME=ingress
+export SOMETHING=alb-foo
+mkdir -p ./logs/${YEAR}/${MONTH}/${DAY}/
+aws s3 sync \
+  s3://${S3BUCKET}/${SOMETHING}/AWSLogs/${AWS_ACCOUNT_ID}/elasticloadbalancing/${REGION}/${YEAR}/${MONTH}/${DAY}/ \
+  ./logs/${YEAR}/${MONTH}/${DAY}/ \
+  --exclude="*" \
+  --include "*${ALB_NAME}*${YEAR}${MONTH}${DAY}T${HOUR}*"
+```
+
+2. `docker-compose up`
+
+3. parse logs into elastic
 
 ```
-./downloader.py -l mt1-api-gateway -t "20190229-06"
+find ./logs/${YEAR}/${MONTH}/${DAY} -type f -name "*.gz" -exec ./main.py -f {} \;
 ```
+
+
 
 
 
@@ -59,6 +85,7 @@ source localvenv/bin/activate
 3. install the deps
 
 ```
+pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
@@ -67,7 +94,11 @@ pip install -r requirements.txt
 5. don't forget to freeze deps
 
 ```
-pip freeze --path ./localvenv/lib/python3.8/site-packages
+pip freeze --path ./localvenv/lib/python3.8/site-packages > requirements.txt
 ```
 
+
+# Credits
+
+The fastest way I've found to parse the lines is with the regex by @jweyrich [here](https://gist.github.com/jweyrich/8d53a7bf5bad7b5958423cb4e538ab20)
 
